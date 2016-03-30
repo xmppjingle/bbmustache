@@ -113,6 +113,13 @@ atom_and_binary_key_test_() ->
               ?assertEqual(<<"<b>Willy is awesome.</b>">>,
                            bbmustache:render(<<"{{#wrapped}}{{name}} is awesome.{{dummy}}{{/wrapped}}">>,
                                            [{<<"name">>, "Willy"}, {<<"wrapped">>, F}], [{key_type, binary}]))
+      end},
+     {"binary non key",
+      fun() ->
+              F = fun(Text, Render) -> ["<b>", Render(Text), "</b>"] end,
+              ?assertEqual(<<"<b>Willy is {{AOOL}}.</b>">>,
+                           bbmustache:render(<<"{{#wrapped}}{{name}} is {{AOOL}}{{dummy}}.{{/wrapped}}">>,
+                                           [{<<"name">>, "Willy"}, {<<"wrapped">>, F}], [{key_type, binary}]))
       end}
     ].
 

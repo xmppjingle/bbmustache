@@ -148,6 +148,18 @@ compile(#?MODULE{data = Tags} = T, Data, Options) ->
 %% Internal Function
 %%----------------------------------------------------------------------------------------------------------------------
 
+%% @doc Default Value for non Existing Key Values.
+%%
+%% Deafult Values for Keys Starting with Capitals is the <<"{{Key}}">> itself. Otherwise <<>>.
+get_default(Key) ->
+    io:format("~p~n", [Key]),
+    case Key of
+        <<A:8,_/binary>> when A >= 65 andalso A =< 90 ->
+            <<"{{", Key/binary, "}}">>;
+        _ ->
+            <<>>
+    end.
+
 %% @doc {@link compile/2}
 %%
 %% ATTENTION: The result is a list that is inverted.
@@ -155,7 +167,7 @@ compile(#?MODULE{data = Tags} = T, Data, Options) ->
 compile_impl([], _, Result, _) ->
     Result;
 compile_impl([{n, Key} | T], Map, Result, Options) ->
-    compile_impl(T, Map, [escape(to_iodata(data_get(convert_keytype(Key, Options), Map, <<>>))) | Result], Options);
+    compile_impl(T, Map, [escape(to_iodata(data_get(convert_keytype(Key, Options), Map, get_default(Key)))) | Result], Options);
 compile_impl([{'&', Key} | T], Map, Result, Options) ->
     compile_impl(T, Map, [to_iodata(data_get(convert_keytype(Key, Options), Map, <<>>)) | Result], Options);
 compile_impl([{'#', Key, Tags, Source} | T], Map, Result, Options) ->
