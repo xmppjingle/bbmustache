@@ -17,7 +17,9 @@
          parse_binary/1,
          parse_file/1,
          compile/2,
-         compile/3
+         compile/3,
+         trim_whitespace/1,
+         dict_from_file/1
         ]).
 
 -export_type([
@@ -411,3 +413,31 @@ check_data_type([])           -> maybe;
 check_data_type([{_, _} | _]) -> true;
 check_data_type(_)            -> false.
 -endif.
+
+trim_whitespace(Input) ->
+   re:replace(Input, "(^\\s+)|(\\s+$)", "", [global,{return,list}]).
+
+dict_from_file(Filename) ->
+    case file:open(Filename, [read]) of
+        {ok, FP} ->
+            dict_from_file_(FP, dict:new());
+        {error,_} ->
+            'invalid_filename'
+    end.
+
+dict_from_file_(FP, Dict) ->
+    case file:read_line(FP) of
+        {ok, LN} ->
+            case string:tokens(LN, ",") of
+                [K,V|_] ->
+                    KK = trim_whitespace(K),
+                    VV = trim_whitespace(V),
+                    Dict2 = dict:store(KK, VV, Dict);
+                _ ->
+                    Dict2 = Dict
+            end,
+            dict_from_file_(FP, Dict2);
+        _ ->
+            file:close(FP),
+            Dict
+    end.
