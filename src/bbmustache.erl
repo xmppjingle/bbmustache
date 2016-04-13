@@ -154,7 +154,6 @@ compile(#?MODULE{data = Tags} = T, Data, Options) ->
 %%
 %% Deafult Values for Keys Starting with Capitals is the <<"{{Key}}">> itself. Otherwise <<>>.
 get_default(Key) ->
-    io:format("~p~n", [Key]),
     case Key of
         <<A:8,_/binary>> when A >= 65 andalso A =< 90 ->
             <<"{{", Key/binary, "}}">>;
