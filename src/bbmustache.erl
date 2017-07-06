@@ -19,7 +19,8 @@
          compile/2,
          compile/3,
          trim_whitespace/1,
-         dict_from_file/1
+         dict_from_file/1,
+         map_from_file/1
         ]).
 
 -export_type([
@@ -439,4 +440,29 @@ dict_from_file_(FP, Dict) ->
         _ ->
             file:close(FP),
             Dict
+    end.
+
+map_from_file(Filename) ->
+    case file:open(Filename, [read]) of
+        {ok, FP} ->
+            map_from_file_(FP, #{});
+        {error,_} ->
+            'invalid_filename'
+    end.
+
+map_from_file_(FP, Map) ->
+    case file:read_line(FP) of
+        {ok, LN} ->
+            case string:tokens(LN, ",") of
+                [K,V|_] ->
+                    KK = list_to_binary(trim_whitespace(K)),
+                    VV = list_to_binary(trim_whitespace(V)),
+                    Map2 = Map#{KK =>  VV};
+                _ ->
+                    Map2 = Map
+            end,
+            dict_from_file_(FP, Map2);
+        _ ->
+            file:close(FP),
+            Map
     end.
