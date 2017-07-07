@@ -20,7 +20,9 @@
          compile/3,
          trim_whitespace/1,
          dict_from_file/1,
-         map_from_file/1
+         map_from_file/1,
+         map_from_line/1,
+         map_from_file_line/1
         ]).
 
 -export_type([
@@ -451,18 +453,32 @@ map_from_file(Filename) ->
     end.
 
 map_from_file_(FP, Map) ->
+    case map_from_file_line(FP, Map) of
+        eof ->
+            Map;
+        NewMap ->
+            map_from_file_(FP, NewMap)
+    end.
+
+map_from_file_line(FP) ->
+    map_from_file_line(FP, #{}).
+map_from_file_line(FP, Map) ->
     case file:read_line(FP) of
         {ok, LN} ->
-            case string:tokens(LN, ",") of
-                [K,V|_] ->
-                    KK = list_to_binary(trim_whitespace(K)),
-                    VV = list_to_binary(trim_whitespace(V)),
-                    Map2 = Map#{KK =>  VV};
-                _ ->
-                    Map2 = Map
-            end,
-            dict_from_file_(FP, Map2);
+            map_from_line(LN, Map);
         _ ->
             file:close(FP),
-            Map
+            eof
     end.
+
+map_from_line(LN) ->
+    map_from_line(LN, #{}).
+map_from_line(LN, Map) ->
+    map_from_line_(string:tokens(LN, ",=;"), Map).
+
+map_from_line_([K,V|T], Map) ->
+    KK = list_to_binary(trim_whitespace(K)),
+    VV = list_to_binary(trim_whitespace(V)),
+    map_from_line_(T, Map#{KK => VV});
+map_from_line_(_, Map) -> Map.
+
